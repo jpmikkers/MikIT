@@ -15,62 +15,62 @@ static void HandleTick(void *data)
 
 static void PlayIT(FILE *fp,FILE *out,int volume)
 {
-    MMODULE *p;
+    MMODULE *modulePlayer;
 
     try
     {
-        MDRV_WAV d(out);
-        MINPUT_FP c(fp);
+        MDRV_WAV audioDriver(out);
+        MINPUT_FP inputStream(fp);
 
-        d.mode=DMODE_16BITS|DMODE_STEREO|DMODE_INTERP|DMODE_NOCLICK|DMODE_DITHER;
-        d.channels=64;
-        d.frequency=44100;
-        d.latency=200;
-        d.subdevice=0;
-        d.tickhandler=HandleTick;
-        d.tickhandlerdata=NULL;
-        d.uservolume=volume;
+        audioDriver.mode=DMODE_16BITS|DMODE_STEREO|DMODE_INTERP|DMODE_NOCLICK|DMODE_DITHER;
+        audioDriver.channels=64;
+        audioDriver.frequency=44100;
+        audioDriver.latency=200;
+        audioDriver.subdevice=0;
+        audioDriver.tickhandler=HandleTick;
+        audioDriver.tickhandlerdata=NULL;
+        audioDriver.uservolume=volume;
 
-        d.Init();
+        audioDriver.Init();
 
-        d.peak=0;
+        audioDriver.peak=0;
 
-        if(MMODULE_IT::Test(&c,NULL,0)){
-            p=new MMODULE_IT();
+        if(MMODULE_IT::Test(&inputStream,NULL,0)){
+            modulePlayer=new MMODULE_IT();
         }
-        else if(MMODULE_XM::Test(&c,NULL,0)){
-            p=new MMODULE_XM();
+        else if(MMODULE_XM::Test(&inputStream,NULL,0)){
+            modulePlayer=new MMODULE_XM();
         }
-        else if(MMODULE_MOD::Test(&c,NULL,0)){
-            p=new MMODULE_MOD();
+        else if(MMODULE_MOD::Test(&inputStream,NULL,0)){
+            modulePlayer=new MMODULE_MOD();
         }
-        else if(MMODULE_S3M::Test(&c,NULL,0)){
-            p=new MMODULE_S3M();
+        else if(MMODULE_S3M::Test(&inputStream,NULL,0)){
+            modulePlayer=new MMODULE_S3M();
         }
-        else if(MMODULE_DCM::Test(&c,NULL,0)){
-            p=new MMODULE_DCM();
+        else if(MMODULE_DCM::Test(&inputStream,NULL,0)){
+            modulePlayer=new MMODULE_DCM();
         }
         else{
             throw MikModException("Unknown module type");
         }
 
-        d.tickhandlerdata = p;
+        audioDriver.tickhandlerdata = modulePlayer;
 
-        p->Load(&c);
+        modulePlayer->Load(&inputStream);
 
-        printf("\nsuccessfully loaded a %s type module",p->moduletype);
+        printf("\nsuccessfully loaded a %s type module",modulePlayer->moduletype);
 
-        d.Start();
-        p->SetLoopMode(0);
-        p->Start(&d);
+        audioDriver.Start();
+        modulePlayer->SetLoopMode(0);
+        modulePlayer->Start(&audioDriver);
 
         puts("\nNow playing.. hit any key to stop");
 
-        while(!p->IsReady()){
+        while(!modulePlayer->IsReady()){
 
-            d.Update();
+            audioDriver.Update();
 
-            printf("\rposition: %d",p->GetPos());
+            printf("\rposition: %d",modulePlayer->GetPos());
 
             if(_kbhit()){
                 _getch();
@@ -78,10 +78,10 @@ static void PlayIT(FILE *fp,FILE *out,int volume)
             }
         }
 
-        d.Stop();
-        p->Stop();
-        d.Exit();
-        delete p;
+        audioDriver.Stop();
+        modulePlayer->Stop();
+        audioDriver.Exit();
+        delete modulePlayer;
 
     }
     catch(MikModException e)
@@ -97,7 +97,7 @@ void main(int argc,char *argv[])
     puts("MIKIT - (c)1997 Jean-Paul Mikkers <jpmikkers@gmail.com>\n");
     
     if(argc<4){
-        puts("Usage: XM2WAV <module.xm> <outfile.wav> <volume>  (standard volume=100)");
+        puts("Usage: MIKIT <module.xm> <outfile.wav> <volume>  (standard volume=100)");
         return;
     }
 
