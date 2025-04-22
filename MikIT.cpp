@@ -7,6 +7,7 @@
 #include <conio.h>
 #include "mikit.h"
 #include "mdrv_wav.h"
+#include "mdrv_w95.h"
 
 static void HandleTick(void *data)
 {
@@ -19,7 +20,8 @@ static void PlayIT(FILE *fp,FILE *out,int volume)
 
     try
     {
-        MDRV_WAV audioDriver(out);
+        //MDRV_WAV audioDriver(out);
+        MDRIVER_W95 audioDriver;
         MINPUT_FP inputStream(fp);
 
         audioDriver.mode=DMODE_16BITS|DMODE_STEREO|DMODE_INTERP|DMODE_NOCLICK|DMODE_DITHER;
@@ -61,7 +63,7 @@ static void PlayIT(FILE *fp,FILE *out,int volume)
         printf("\nsuccessfully loaded a %s type module",modulePlayer->moduletype);
 
         audioDriver.Start();
-        modulePlayer->SetLoopMode(0);
+        modulePlayer->SetLoopMode(1);
         modulePlayer->Start(&audioDriver);
 
         puts("\nNow playing.. hit any key to stop");
